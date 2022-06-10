@@ -1,5 +1,5 @@
 from sentence_transformers import SentenceTransformer
-from sklearn.q.pairwise import cosine_similarity
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class sentence_mech:
