@@ -5,6 +5,7 @@ import time
 from time import sleep
 from similarity_check.sentence_mech import sentence_mech
 import threading
+import sqlite3
 
 app = Flask(__name__)
 
@@ -240,5 +241,29 @@ def factScrape(claim1,dataArr):
 if __name__ == '__main__':
     cm = check_mate()
     sm = sentence_mech()
+
+    conn = sqlite3.connect('database.db')
+    print("Opened database successfully")
+    
+    #conn.execute("INSERT INTO User (name,username,password) VALUES (\'dank\',\'bot\',\'pwd\')")
+
+    #print("Tuple created successfully")
+
+    conn.row_factory = sqlite3.Row
+
+
+    cur = conn.cursor()
+    cur.execute("select * from User")
+   
+    rows = cur.fetchall(); 
+
+    print(len(rows))
+    for row in rows:
+        print(row['name'])
+
+    conn.commit()
+    conn.close()
+
+
     app.run()
 
