@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, session
 from news_rp import check_mate
 import json
 import time
@@ -6,8 +6,10 @@ from time import sleep
 from similarity_check.sentence_mech import sentence_mech
 import threading
 import sqlite3
+import secrets
 
 app = Flask(__name__)
+app.secret_key = "AbhayArvindhKritikaNitin"
 
 @app.route('/checktool',methods=['GET'])
 def checktool():
@@ -90,8 +92,6 @@ def checktool():
     print('Execution time: ' + str(endTime - startTime))
 
     return data
-
-
 
 @app.route('/quicktool',methods=['GET'])
 def quick_page():
@@ -236,34 +236,61 @@ def factScrape(claim1,dataArr):
 
     dataArr.append(data)
 
-
-
-if __name__ == '__main__':
-    cm = check_mate()
-    sm = sentence_mech()
-
+def connect_to_db():
     conn = sqlite3.connect('database.db')
     print("Opened database successfully")
+    # conn.execute("INSERT INTO User (name,username,password) VALUES (\'dank\',\'bot\',\'pwd\')")
+    # print("Tuple created successfully")
+
+    return conn
+
+@app.route('/login', methods=["POST"])
+def login():
+    username = request.form.get("username")
+    password = request.form.get("password")
     
-    #conn.execute("INSERT INTO User (name,username,password) VALUES (\'dank\',\'bot\',\'pwd\')")
+    conn = connect_to_db()
+    user = conn.execute("select * from User where username='"+username+"'").fetchone()
+    try:
+        if(user[2] == password):
+            session['user'] = username
+            return {"message": "Logged In"}
+        else:
+            return {"message": "Failed"}
+    except:
+        return {"message": "Failed"}
 
-    #print("Tuple created successfully")
-
-    conn.row_factory = sqlite3.Row
-
-
+@app.route('/add-api-key', methods=["GET"])
+def addKey():
+    try:
+        username = session['user']
+    except:    
+        return {"message": "Failed 1"}
+    conn = connect_to_db()
     cur = conn.cursor()
-    cur.execute("select * from User")
-   
-    rows = cur.fetchall(); 
-
-    print(len(rows))
-    for row in rows:
-        print(row['name'])
-
+    api_key = secrets.token_hex(16)
+    cur.execute("insert into Keys (username,key,count,activated) values (\'"+ username +"\',\'"+ api_key +"\',0,1)")
     conn.commit()
     conn.close()
+    #return {"message": "Failed 2"}
+    return {"message": "Key Added"}
 
 
-    app.run()
+@app.route('/all', methods=["GET"])
+def all():
+    try:
+        username = session['user']
+    except:    
+        return {"message": "Failed"}
+    conn = connect_to_db()
+    cur = conn.cursor()
+    users = cur.execute("select * from Keys where username='" + username + "'").fetchall()
+    conn.close()
+
+    return {"users":users}
+
+if __name__ == '__main__':
+    # cm = check_mate()
+    # sm = sentence_mech()
+    app.run(port=5001, debug=True)
 
