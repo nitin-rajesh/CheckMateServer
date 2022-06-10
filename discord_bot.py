@@ -13,24 +13,30 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+        
+    if message.author == client.user:
+        return
 
-	if message.author == client.user:
-		return
+    if message.content.lower().startswith('!check '):
+        claim = message.content[7:]
+        response = requests.get(url = f'http://127.0.0.1:5000/quicktool?claim1={claim}')
+        result = response.json()
+        try:
+            embed = discord.Embed(title = 'Fact checker verdict',url=result['url'])
+        except:
+            embed = discord.Embed(title = 'Fact checker verdict')
 
-	if message.content.lower().startswith('!check '):
-		claim = message.content[7:]
-		response = requests.get(url = f'http://127.0.0.1:5001/quicktool?claim1={claim}')
-		result = response.json()
-		try:
-			embed = discord.Embed(title = 'Fact checker verdict',url=result['url'])
-		except:
-			embed = discord.Embed(title = 'Fact checker verdict')
+        embed.add_field(name = 'Claim ',value=claim)
 
-		embed.add_field(name = 'Claim ',value=claim)
+        try:
+            embed.add_field(name = 'Claim rating ', value=result['truth'],inline=False)
+        except:
+            embed.add_field(name = 'Claim rating ', value='Indeterminable',inline=False)
 
-		embed.add_field(name = 'Claim rating ', value=result['truth'],inline=False)
 
-		await message.channel.send(embed=embed)
+
+    await message.channel.send(embed=embed)
+
 
 api_key=''
 with open(os.path.expanduser('~/TextRef/api_key.txt')) as f:
