@@ -1,3 +1,3 @@
 # FC11-404
 
-## Truth machaa - The white knight to fight against fake news
+_Fake news detection system to combat misinformation_
