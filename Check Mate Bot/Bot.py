@@ -23,10 +23,10 @@ def bot():
     print(incoming_msg)
     # print(result['truth'])
 
-    TruthRating = str(result['truth'].lower();
+    TruthRating = str(result['truth'].lower())
     
     try:
-        msg.body('This claim appears to be '+TruthRating+'!\n*More info:'+str(result['url'].lower())))
+        msg.body('This claim appears to be '+TruthRating+'!\n*More info:'+str(result['url'].lower()))
     except:
         msg.body('This claim appears to be '+str(result['truth'].lower()+'!')) 
 
