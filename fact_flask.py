@@ -14,6 +14,7 @@ def checktool():
     
     return {"Claim":claim1,"Keys":keywords}
 
+
 if __name__ == '__main__':
     cm = check_mate()
     app.run()
