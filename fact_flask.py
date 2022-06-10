@@ -1,5 +1,5 @@
 from flask import Flask, request
-from fct import check_mate
+from news_rp import check_mate
 import json
 
 from nltk_trial import extract_keywords
@@ -10,9 +10,7 @@ app = Flask(__name__)
 def checktool():
     claim1 = request.args.get('claim1')
 
-    keywords = extract_keywords(claim1)
-    
-    return {"Claim":claim1,"Keys":keywords}
+    return json.dumps(cm.scrape(claim1))
 
 
 if __name__ == '__main__':
