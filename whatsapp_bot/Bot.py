@@ -12,7 +12,6 @@ def bot():
     msg = resp.message()
     incoming_msg = request.values.get('Body', '').lower()
     print(incoming_msg)
-
     url_string = f"https://6228-103-213-210-210.in.ngrok.io/quicktool?claim1={incoming_msg}"
     print(url_string.replace(' ','%20'))
     response = None
@@ -26,12 +25,10 @@ def bot():
     TruthRating = str(result['truth'].lower())
     
     try:
-        msg.body('This claim appears to be '+TruthRating+'!\n*More info:'+str(result['url'].lower()))
+        msg.body('This claim appears to be '+'*'+TruthRating+'*'+'!\n*More info*:'+str(result['url'].lower()))
     except:
-        msg.body('This claim appears to be '+str(result['truth'].lower()+'!')) 
+        msg.body('This claim appears to be '+'*'+str(result['truth'].lower()+'*!')) 
 
     return str(resp)
-
-
 if __name__ == '__main__':
     app.run(host="localhost", port=5002,debug=True)
