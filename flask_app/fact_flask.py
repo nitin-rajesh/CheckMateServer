@@ -1,5 +1,5 @@
 import secrets
-from flask import Flask, request, session
+from flask import Flask, request, session, jsonify
 from news_rp import check_mate
 import json
 import time
@@ -13,7 +13,7 @@ COUNT = 5
 
 app = Flask(__name__)
 app.secret_key = "AbhayArvindhKritikaNitin"
-cors = CORS(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
@@ -98,7 +98,7 @@ def checktool():
 
     print('Execution time: ' + str(endTime - startTime))
 
-    return data
+    return prepareJson(data)
 
 
 
@@ -151,7 +151,7 @@ def quick_page():
 
     print('Execution time: ' + str(endTime - startTime))
 
-    return finalData
+    return prepareJson(finalData)
 
 
 @app.route('/checkmate',methods=['GET'])
@@ -166,19 +166,19 @@ def checkMate():
     api_key = request.args.get('key')
 
     if(api_key == None):
-        return {"message": "Failed"}
+        return prepareJson({"message": "Failed"})
     try:
         key = cur.execute("select * from Keys where key='" + api_key + "'").fetchall()
     except:
-        return {"message": "Failed"}
+        return prepareJson({"message": "Failed"})
     if(len(key) == 0):
-        return {"message": "Failed"}
+        return prepareJson({"message": "Failed"})
     
 
     count = key[0][2]
     activated = key[0][3]
     if(activated == 0):
-        return {"message": "Pay Money"}
+        return prepareJson({"message": "Pay Money"})
     
 
     print('Claim recieved: ' + claim1)
@@ -228,7 +228,7 @@ def checkMate():
     print('Execution time: ' + str(endTime - startTime))
 
     conn.close()
-    return finalData
+    return prepareJson(finalData)
 
 
 def justSense(claim1, dataArr):
@@ -338,25 +338,26 @@ def login():
     username = request.form.get("username")
     password = request.form.get("password")
     
-    conn = connect_to_db()
-    user = conn.execute("select * from User where username='"+username+"'").fetchone()
-    try:
+    try:    
+        conn = connect_to_db()
+        user = conn.execute("select * from User where username='"+username+"'").fetchone()
+
         if(user[2] == password):
             session['user'] = username
-            return {"message": "Logged In"}
+            return prepareJson({"message": "Logged In"})
         else:
-            return {"message": "Failed","desc":"out of bounds"}
+            return prepareJson({"message": "Failed","desc":"out of bounds"})
     except:
-        return {"message": "Failed","desc":"db session fail"}
+        return prepareJson({"message": "Failed","desc":"db session fail"})
 
 @app.route('/logout', methods=["GET"])
 @cross_origin()
 def logout():
     try:
         session.pop('user', default=None)
-        return {"message":"Logout success"}
+        return prepareJson({"message":"Logout success"})
     except:
-        return {"message": "Failed"}
+        return prepareJson({"message": "Failed"})
 
 @app.route('/add-api-key', methods=["GET"])
 @cross_origin()
@@ -364,7 +365,7 @@ def addKey():
     try:
         username = session['user']
     except:    
-        return {"message": "Failed 1"}
+        return prepareJson({"message": "Failed 1"})
     conn = connect_to_db()
     cur = conn.cursor()
     api_key = secrets.token_hex(16)
@@ -372,7 +373,7 @@ def addKey():
     conn.commit()
     conn.close()
     #return {"message": "Failed 2"}
-    return {"message": "Key Added"}
+    return prepareJson({"message": "Key Added"})
 
 
 @app.route('/keys', methods=["GET"])
@@ -381,13 +382,13 @@ def all():
     try:
         username = session['user']
     except:    
-        return {"message": "Failed"}
+        return prepareJson({"message": "Failed"})
     conn = connect_to_db()
     cur = conn.cursor()
     users = cur.execute("select * from Keys where username='" + username + "'").fetchall()
     conn.close()
 
-    return {"users":users}
+    return prepareJson({"users":users})
 
 @app.route("/renew", methods=["GET"])
 @cross_origin()
@@ -396,7 +397,7 @@ def activate():
     try:
         username = session['user']
     except:    
-        return {"message": "Failed","desc":"user not logged in"}
+        return prepareJson({"message": "Failed","desc":"user not logged in"})
     conn = connect_to_db()
     cur = conn.cursor()
     try:
@@ -404,16 +405,25 @@ def activate():
         cur.execute("Update Keys set activated="+str(1)+" where key='"+ api_key +"'")
         conn.commit()
     except:
-        return {"message": "Failed","desc":"db entry fail"}
-    return {"message": "Renewed"}
+        return prepareJson({"message": "Failed","desc":"db entry fail"})
+    return prepareJson({"message": "Renewed"})
 
 @app.route("/trial",methods=["GET"])
 @cross_origin()
 def trial():
-    return {"message":"Checkmate"}
+    response = jsonify({"message":"Checkmate"})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return prepareJson(response)
+
+def prepareJson(dict):
+    response = jsonify(dict)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 if __name__ == '__main__':
     cm = check_mate()
     sm = sentence_mech()
     app.run(port=5001, debug=True)
+
+
 
