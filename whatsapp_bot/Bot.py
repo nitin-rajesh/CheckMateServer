@@ -16,18 +16,20 @@ def bot():
     print(url_string.replace(' ','%20'))
     response = None
     response = requests.get(url=url_string.replace(' ','%20'))
-
     result = response.json()
 
     print(incoming_msg)
     # print(result['truth'])
 
     TruthRating = str(result['truth'].lower())
+    if(TruthRating == "true" or TruthRating == "false"):
+        try:
+            msg.body('This claim appears to be '+'*'+TruthRating+'*'+'!\n*More info*:'+str(result['url'].lower()))
+        except:
+            msg.body('This claim appears to be '+'*'+str(result['truth'].lower()+'*!')) 
+    else:
+        msg.body(TruthRating+'!\n*More info*:'+str(result['url'].lower()))
     
-    try:
-        msg.body('This claim appears to be '+'*'+TruthRating+'*'+'!\n*More info*:'+str(result['url'].lower()))
-    except:
-        msg.body('This claim appears to be '+'*'+str(result['truth'].lower()+'*!')) 
 
     return str(resp)
 if __name__ == '__main__':
