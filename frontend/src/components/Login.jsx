@@ -10,10 +10,11 @@ function Login() {
 		data.append("username", username);
 		data.append("password", password);
 		const response = fetch("https://6228-103-213-210-210.in.ngrok.io/login", {
+			mode:"no-cors",
 			method: "POST",
 			crossDomain: true,
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body: data
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(data)
 		}).then((response) => response.json()).then((res)=>{console.log(res)})
 	}
 	return (
