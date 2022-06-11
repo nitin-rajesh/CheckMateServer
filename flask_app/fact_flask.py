@@ -1,9 +1,11 @@
+import secrets
 from flask import Flask, request, session
 from news_rp import check_mate
 import json
 import time
 from time import sleep
 from similarity_check.sentence_mech import sentence_mech
+from flask_cors import CORS, cross_origin
 import threading
 import sqlite3
 
@@ -11,9 +13,12 @@ COUNT = 5
 
 app = Flask(__name__)
 app.secret_key = "AbhayArvindhKritikaNitin"
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 @app.route('/checktool',methods=['GET'])
+@cross_origin()
 def checktool():
 
     startTime = int(round(time.time()*1000))
@@ -97,98 +102,9 @@ def checktool():
 
 
 
-    conn = connect_to_db()
-    cur = conn.cursor()
-    users = cur.execute("select * from Keys where username='" + username + "'").fetchall()
-
-    startTime = int(round(time.time()*1000))
-
-    data = {}
-
-    claim1 = request.args.get('claim1')
-    claim2 = request.args.get('claim2')
-    api_key = request.args.get('key')
-
-
-
-    if(api_key == None):
-        pass
-
-
-    print('Claim recieved: ' + claim1)
-
-    claimResponse = cm.query(claim1)
-    data['statement'] = []
-    data['comparison'] = []
-
-    isJustSense = True
-    trueTag = False
-
-    print('Checking justSense')
-    with open('lookup/grammar.txt') as f:
-        print(claimResponse['justification'])
-        for word in f.read().split():
-            if word in str(claimResponse['justification']):
-                isJustSense = False
-                print('justSense false')
-                break
-
-    if bool(claimResponse['justification']) and isJustSense:
-        #Reading justification
-
-        for val in claimResponse['justification']:
-            data['rating'] = val['truth_rating']
-            if data['rating'] != 'Indeterminable':
-                data['truth'] = data['rating']
-                trueTag = True            
-            data['statement'].append(val['justification'])
-            
-        if not trueTag:    
-            #No truth tag
-            data['truth'] = 'False'
-            for word in claim1.lower().split(' '):
-                if word in data['statement'][0].lower():
-                    data['truth'] = 'True'
-                    break
-                
-        else:
-            if(data['truth'] == True):
-                data['truth'] = 'True'
-            else:
-                data['truth'] = 'False'
-    else:
-        #Fact check
-        data = {}
-
-        simVal = -0.1
-
-        claimList=cm.scrape(claim1)
-
-        for oneClaim in claimList['justification']:
-            try:
-                #print(oneClaim)
-                if 'says' in oneClaim['claim']:
-                    continue
-                tempData = {}
-                tempData['claim'] = oneClaim['claim']
-                tempData['comparison'] = sm.compare(oneClaim['claim'],claim1)
-                tempData['truth'] = oneClaim['truth_rating']
-                tempData['url'] = oneClaim['url']
-                print(tempData)
-                if(float(tempData['comparison']) > simVal):
-                    data = tempData
-                    simVal = float(tempData['comparison'])
-            finally:
-                continue
-
-    endTime = int(round(time.time()*1000))
-
-    print('Execution time: ' + str(endTime - startTime))
-
-    conn.close()
-    return data
-
+    
 @app.route('/quicktool',methods=['GET'])
+@cross_origin()
 def quick_page():
 
     startTime = int(round(time.time()*1000))
@@ -417,6 +333,7 @@ def connect_to_db():
     return conn
 
 @app.route('/login', methods=["POST"])
+@cross_origin()
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
@@ -428,18 +345,21 @@ def login():
             session['user'] = username
             return {"message": "Logged In"}
         else:
-            return {"message": "Failed"}
+            return {"message": "Failed","desc":"out of bounds"}
     except:
-        return {"message": "Failed"}
+        return {"message": "Failed","desc":"db session fail"}
 
 @app.route('/logout', methods=["GET"])
+@cross_origin()
 def logout():
     try:
         session.pop('user', default=None)
+        return {"message":"Logout success"}
     except:
         return {"message": "Failed"}
 
 @app.route('/add-api-key', methods=["GET"])
+@cross_origin()
 def addKey():
     try:
         username = session['user']
@@ -456,6 +376,7 @@ def addKey():
 
 
 @app.route('/keys', methods=["GET"])
+@cross_origin()
 def all():
     try:
         username = session['user']
@@ -469,6 +390,7 @@ def all():
     return {"users":users}
 
 @app.route("/renew", methods=["GET"])
+@cross_origin()
 def activate():
     api_key = request.args.get("key")
     try:
@@ -485,6 +407,10 @@ def activate():
         return {"message": "Failed","desc":"db entry fail"}
     return {"message": "Renewed"}
 
+@app.route("/trial",methods=["GET"])
+@cross_origin()
+def trial():
+    return {"message":"Checkmate"}
 
 if __name__ == '__main__':
     cm = check_mate()
