@@ -6,10 +6,12 @@ from time import sleep
 from similarity_check.sentence_mech import sentence_mech
 import threading
 import sqlite3
-import secrets
+
+COUNT = 5
 
 app = Flask(__name__)
 app.secret_key = "AbhayArvindhKritikaNitin"
+
 
 @app.route('/checktool',methods=['GET'])
 def checktool():
@@ -93,6 +95,99 @@ def checktool():
 
     return data
 
+
+
+    conn = connect_to_db()
+    cur = conn.cursor()
+    users = cur.execute("select * from Keys where username='" + username + "'").fetchall()
+
+    startTime = int(round(time.time()*1000))
+
+    data = {}
+
+    claim1 = request.args.get('claim1')
+    claim2 = request.args.get('claim2')
+    api_key = request.args.get('key')
+
+
+
+    if(api_key == None):
+        pass
+
+
+    print('Claim recieved: ' + claim1)
+
+    claimResponse = cm.query(claim1)
+    data['statement'] = []
+    data['comparison'] = []
+
+    isJustSense = True
+    trueTag = False
+
+    print('Checking justSense')
+    with open('lookup/grammar.txt') as f:
+        print(claimResponse['justification'])
+        for word in f.read().split():
+            if word in str(claimResponse['justification']):
+                isJustSense = False
+                print('justSense false')
+                break
+
+    if bool(claimResponse['justification']) and isJustSense:
+        #Reading justification
+
+        for val in claimResponse['justification']:
+            data['rating'] = val['truth_rating']
+            if data['rating'] != 'Indeterminable':
+                data['truth'] = data['rating']
+                trueTag = True            
+            data['statement'].append(val['justification'])
+            
+        if not trueTag:    
+            #No truth tag
+            data['truth'] = 'False'
+            for word in claim1.lower().split(' '):
+                if word in data['statement'][0].lower():
+                    data['truth'] = 'True'
+                    break
+                
+        else:
+            if(data['truth'] == True):
+                data['truth'] = 'True'
+            else:
+                data['truth'] = 'False'
+    else:
+        #Fact check
+        data = {}
+
+        simVal = -0.1
+
+        claimList=cm.scrape(claim1)
+
+        for oneClaim in claimList['justification']:
+            try:
+                #print(oneClaim)
+                if 'says' in oneClaim['claim']:
+                    continue
+                tempData = {}
+                tempData['claim'] = oneClaim['claim']
+                tempData['comparison'] = sm.compare(oneClaim['claim'],claim1)
+                tempData['truth'] = oneClaim['truth_rating']
+                tempData['url'] = oneClaim['url']
+                print(tempData)
+                if(float(tempData['comparison']) > simVal):
+                    data = tempData
+                    simVal = float(tempData['comparison'])
+            finally:
+                continue
+
+    endTime = int(round(time.time()*1000))
+
+    print('Execution time: ' + str(endTime - startTime))
+
+    conn.close()
+    return data
+
 @app.route('/quicktool',methods=['GET'])
 def quick_page():
 
@@ -140,6 +235,83 @@ def quick_page():
 
     print('Execution time: ' + str(endTime - startTime))
 
+    return finalData
+
+
+@app.route('/checkmate',methods=['GET'])
+def checkMate():
+    startTime = int(round(time.time()*1000))
+    conn = connect_to_db()
+    cur = conn.cursor()
+
+
+    claim1 = request.args.get('claim1')
+    claim2 = request.args.get('claim2')
+    api_key = request.args.get('key')
+
+    if(api_key == None):
+        return {"message": "Failed"}
+    try:
+        key = cur.execute("select * from Keys where key='" + api_key + "'").fetchall()
+    except:
+        return {"message": "Failed"}
+    if(len(key) == 0):
+        return {"message": "Failed"}
+    
+
+    count = key[0][2]
+    activated = key[0][3]
+    if(activated == 0):
+        return {"message": "Pay Money"}
+    
+
+    print('Claim recieved: ' + claim1)
+
+    data = []
+
+
+    #create two threads; one for query() and one for scrape()
+
+    ### justSense Section
+
+    justSenseThread = threading.Thread(target=justSense,args=(claim1,data,))
+
+    justSenseThread.start()
+
+    ### factScrape section
+
+    factScrapeThread = threading.Thread(target=factScrape,args=(claim1,data,))
+
+    factScrapeThread.start()
+
+    while(justSenseThread.is_alive() or factScrapeThread.is_alive()):
+        sleep(0.05)
+
+    jsonData = {}
+
+    finalData = {}
+
+    for val in data:
+        jsonData[val['type']] = val
+
+    if jsonData['justSense']['truth'] == 'Void':
+        finalData = jsonData['factScrape']
+
+    else:
+        finalData = jsonData['justSense']
+
+    if((count+1)%COUNT == 0):
+        cur.execute("Update Keys set count="+str(count+1)+", activated="+str(0)+" where key='"+ api_key +"'")
+        pass
+    else:
+        cur.execute("Update Keys set count="+str(count+1)+" where key='"+ api_key +"'")
+    conn.commit()
+
+    endTime = int(round(time.time()*1000))
+
+    print('Execution time: ' + str(endTime - startTime))
+
+    conn.close()
     return finalData
 
 
@@ -260,6 +432,13 @@ def login():
     except:
         return {"message": "Failed"}
 
+@app.route('/logout', methods=["GET"])
+def logout():
+    try:
+        session.pop('user', default=None)
+    except:
+        return {"message": "Failed"}
+
 @app.route('/add-api-key', methods=["GET"])
 def addKey():
     try:
@@ -276,7 +455,7 @@ def addKey():
     return {"message": "Key Added"}
 
 
-@app.route('/all', methods=["GET"])
+@app.route('/keys', methods=["GET"])
 def all():
     try:
         username = session['user']
@@ -289,8 +468,26 @@ def all():
 
     return {"users":users}
 
+@app.route("/renew", methods=["GET"])
+def activate():
+    api_key = request.args.get("key")
+    try:
+        username = session['user']
+    except:    
+        return {"message": "Failed","desc":"user not logged in"}
+    conn = connect_to_db()
+    cur = conn.cursor()
+    try:
+        #users = cur.execute("select * from Keys where username='" + username + "', key='"+ api_key +"'").fetchall()
+        cur.execute("Update Keys set activated="+str(1)+" where key='"+ api_key +"'")
+        conn.commit()
+    except:
+        return {"message": "Failed","desc":"db entry fail"}
+    return {"message": "Renewed"}
+
+
 if __name__ == '__main__':
-    # cm = check_mate()
-    # sm = sentence_mech()
+    cm = check_mate()
+    sm = sentence_mech()
     app.run(port=5001, debug=True)
 
