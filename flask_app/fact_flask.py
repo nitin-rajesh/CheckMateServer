@@ -6,6 +6,7 @@ import time
 from time import sleep
 from similarity_check.sentence_mech import sentence_mech
 from flask_cors import CORS, cross_origin
+from rake_words import keyword_extractor
 import threading
 import sqlite3
 
@@ -30,7 +31,9 @@ def checktool():
 
     print('Claim recieved: ' + claim1)
 
-    claimResponse = cm.query(claim1)
+    searchClaim = ke.get_keyphrase(claim1)
+
+    claimResponse = cm.query(searchClaim)
     data['statement'] = []
     data['comparison'] = []
 
@@ -75,7 +78,7 @@ def checktool():
 
         simVal = -0.1
 
-        claimList=cm.scrape(claim1)
+        claimList=cm.scrape(searchClaim)
 
         for oneClaim in claimList['justification']:
             try:
@@ -423,6 +426,8 @@ def prepareJson(dict):
 if __name__ == '__main__':
     cm = check_mate()
     sm = sentence_mech()
+    ke = keyword_extractor()
+
     app.run(port=5001, debug=True)
 
 

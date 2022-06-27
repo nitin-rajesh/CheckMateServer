@@ -1,0 +1,151 @@
+
+  0%|          | 0/10 [00:00<?, ?it/s]
+  0%|          | 0/10 [00:00<?, ?it/s]Using custom data configuration default-87a259e19cd6a08b
+Downloading data files: 100%|██████████| 2/2 [00:00<00:00, 1929.30it/s]
+Extracting data files: 100%|██████████| 2/2 [00:00<00:00, 150.50it/s]
+Extracting data files:   0%|          | 0/2 [00:00<?, ?it/s]
+2 tables [00:00,  3.59 tables/s]
+
+Didn't find file custom-bert/tokenizer.json. We won't load it.
+Didn't find file custom-bert/added_tokens.json. We won't load it.
+Didn't find file custom-bert/special_tokens_map.json. We won't load it.
+Didn't find file custom-bert/tokenizer_config.json. We won't load it.
+loading file custom-bert/vocab.txt
+loading file None
+loading file None
+loading file None
+loading file None
+loading configuration file custom-bert/config.json
+Model config BertConfig {
+  "_name_or_path": "custom-bert",
+  "attention_probs_dropout_prob": 0.1,
+  "classifier_dropout": null,
+  "cls_token": "[CLS]",
+  "do_lower_case": true,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "layer_norm_eps": 1e-12,
+  "mask_token": "[MASK]",
+  "max_len": 512,
+  "max_position_embeddings": 512,
+  "model_max_length": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "pad_token": "[PAD]",
+  "pad_token_id": 0,
+  "position_embedding_type": "absolute",
+  "sep_token": "[SEP]",
+  "transformers_version": "4.18.0",
+  "type_vocab_size": 2,
+  "unk_token": "[UNK]",
+  "use_cache": true,
+  "vocab_size": 30522
+}
+loading configuration file custom-bert/config.json
+Model config BertConfig {
+  "_name_or_path": "custom-bert",
+  "attention_probs_dropout_prob": 0.1,
+  "classifier_dropout": null,
+  "cls_token": "[CLS]",
+  "do_lower_case": true,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "layer_norm_eps": 1e-12,
+  "mask_token": "[MASK]",
+  "max_len": 512,
+  "max_position_embeddings": 512,
+  "model_max_length": 512,
+  "model_type": "bert",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "pad_token": "[PAD]",
+  "pad_token_id": 0,
+  "position_embedding_type": "absolute",
+  "sep_token": "[SEP]",
+  "transformers_version": "4.18.0",
+  "type_vocab_size": 2,
+  "unk_token": "[UNK]",
+  "use_cache": true,
+  "vocab_size": 30522
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+100%|██████████| 481/481 [00:38<00:00, 13.06ba/s]
+
+ 96%|█████████▌| 43/45 [00:02<00:00, 23.06ba/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Grouping texts in chunks of 512: 100%|██████████| 481/481 [00:34<00:00, 14.56ba/s]
+
+using `logging_steps` to initialize `eval_steps` to 1000[00:01<00:00, 29.04ba/s]
+PyTorch: setting up devices
+The default value for the training argument `--report_to` will change in v5 (from all installed integrations to none). In v5, you will need to use `--report_to all` to get the same behavior as now. You should start updating your code and make this info disappear :-).
+The following columns in the training set  don't have a corresponding argument in `BertForMaskedLM.forward` and have been ignored: special_tokens_mask. If special_tokens_mask are not expected by `BertForMaskedLM.forward`,  you can safely ignore this message.
+/usr/local/lib/python3.9/site-packages/transformers/optimization.py:306: FutureWarning: This implementation of AdamW is deprecated and will be removed in a future version. Use the PyTorch implementation torch.optim.AdamW instead, or set `no_deprecation_warning=True` to disable this warning
+  warnings.warn(
+***** Running training *****
+  Num examples = 37383
+  Num Epochs = 10
+  Instantaneous batch size per device = 10
+  Total train batch size (w. parallel, distributed & accumulation) = 80
+  Gradient Accumulation steps = 8
+  Total optimization steps = 4670
+Automatic Weights & Biases logging enabled, to disable set os.environ["WANDB_DISABLED"] = "true"
+
+
+
+
+
+
+
+
+***** Running training *****7:10<737:24:24, 569.43s/it]
+  Num examples = 37383
+  Num Epochs = 10
+  Instantaneous batch size per device = 10
+  Total train batch size (w. parallel, distributed & accumulation) = 80
+  Gradient Accumulation steps = 8
+  Total optimization steps = 4670
+  0%|          | 8/4670 [1:19:09<768:46:48, 593.65s/it]
+  0%|          | 0/4670 [00:00<?, ?it/s]
+  0%|          | 1/4670 [10:05<785:39:49, 605.78s/it]
+  0%|          | 0/4670 [00:00<?, ?it/s]
+  0%|          | 0/4670 [00:00<?, ?it/s]
+  0%|          | 0/4670 [00:00<?, ?it/s]

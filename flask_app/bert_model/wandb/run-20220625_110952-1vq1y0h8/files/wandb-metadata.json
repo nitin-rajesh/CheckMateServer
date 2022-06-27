@@ -1,0 +1,32 @@
+{
+    "os": "macOS-12.4-x86_64-i386-64bit",
+    "python": "3.9.5",
+    "heartbeatAt": "2022-06-25T05:39:59.843635",
+    "startedAt": "2022-06-25T05:39:52.884917",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [
+        "--ip=127.0.0.1",
+        "--stdin=9003",
+        "--control=9001",
+        "--hb=9000",
+        "--Session.signature_scheme=\"hmac-sha256\"",
+        "--Session.key=b\"ebd49aac-995b-4827-ba26-e9a025b60e4b\"",
+        "--shell=9002",
+        "--transport=\"tcp\"",
+        "--iopub=9004",
+        "--f=/Users/nitinrajesh/Library/Jupyter/runtime/kernel-v2-98226F6O2bZVdaWZ6.json"
+    ],
+    "state": "running",
+    "program": "<python with no main file>",
+    "git": {
+        "remote": "https://github.com/abhayhk2001/FC11-404.git",
+        "commit": "f13f6d72759cce86b954513078a9bde6319fea59"
+    },
+    "email": "nitinkrajesh@gmail.com",
+    "root": "/Users/nitinrajesh/Code/FantomCode/FC11-404",
+    "host": "Nitins-MacBook-Pro.local",
+    "username": "nitinrajesh",
+    "executable": "/usr/local/opt/python@3.9/bin/python3.9"
+}
