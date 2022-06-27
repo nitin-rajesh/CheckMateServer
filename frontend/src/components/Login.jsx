@@ -1,4 +1,5 @@
 import React, {useState} from 'react'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 
 function Login() {
 	const [username, setUsername] = useState("")
@@ -66,7 +67,9 @@ function Login() {
 		  </div>
 		  <div className="d-grid">
 			<button type="submit" className="btn btn-primary">
-			  Submit
+			<Link  to={'/'}>
+			  <span className= "Submit">Submit</span>
+            </Link>
 			</button>
 		  </div>
 		</form>
