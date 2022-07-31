@@ -1,0 +1,10 @@
+True
+Mostly true
+Arguably true
+Possible
+Missing context
+Debatable
+Unlikely
+Misleading
+False
+3 pinocchios
