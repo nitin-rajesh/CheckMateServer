@@ -9,6 +9,7 @@ from flask_cors import CORS, cross_origin
 from rake_words import keyword_extractor
 import threading
 import sqlite3
+from lookup import rating
 
 COUNT = 5
 
@@ -31,9 +32,7 @@ def checktool():
 
     print('Claim recieved: ' + claim1)
 
-    searchClaim = ke.get_keyphrase(claim1)
-
-    claimResponse = cm.query(searchClaim)
+    claimResponse = cm.query(claim1)
     data['statement'] = []
     data['comparison'] = []
 
@@ -78,7 +77,7 @@ def checktool():
 
         simVal = -0.1
 
-        claimList=cm.scrape(searchClaim)
+        claimList=cm.scrape(claim1)
 
         for oneClaim in claimList['justification']:
             try:
@@ -87,7 +86,7 @@ def checktool():
                     continue
                 tempData = {}
                 tempData['claim'] = oneClaim['claim']
-                tempData['comparison'] = sm.compare(oneClaim['claim'],claim1)
+                tempData['comparison'] = str(sm.compareStr((oneClaim['claim'],claim1, 0)))
                 tempData['truth'] = oneClaim['truth_rating']
                 tempData['url'] = oneClaim['url']
                 print(tempData)
@@ -149,6 +148,8 @@ def quick_page():
 
     else:
         finalData = jsonData['justSense']
+
+    finalData['question'] = jsonData['justSense']['question']
 
     endTime = int(round(time.time()*1000))
 
@@ -241,6 +242,7 @@ def justSense(claim1, dataArr):
     isJustSense = True
     claimResponse = cm.query(claim1)
     data = {}
+    question = ''
     data['statement'] = []
     data['comparison'] = []
 
@@ -250,6 +252,7 @@ def justSense(claim1, dataArr):
         isJustSense = False
 
     else:
+        question = claimResponse['justification'][0]['question']
         with open('lookup/grammar.txt') as f:
             print(claimResponse['justification'])
             for word in f.read().split():
@@ -269,6 +272,8 @@ def justSense(claim1, dataArr):
                 data['truth'] = data['rating']
                 trueTag = True            
             data['statement'].append(val['justification'])
+            if 'what' not in val['question'].lower():
+                question = val['question']
             
         if not trueTag:    
             #No truth tag
@@ -291,6 +296,7 @@ def justSense(claim1, dataArr):
     print(data)
 
     data['type'] = 'justSense'
+    data['question'] = question
 
     dataArr.append(data)
 
@@ -303,29 +309,35 @@ def factScrape(claim1,dataArr):
 
     claimList=cm.scrape(claim1)
 
+    #print(claimList['justification'])
+
     for oneClaim in claimList['justification']:
-        try:
-            #print(oneClaim)
-            if 'says' in oneClaim['claim']:
-                continue
-            tempData = {}
-            tempData['claim'] = oneClaim['claim']
-            tempData['comparison'] = sm.compare(oneClaim['claim'],claim1)
-            tempData['truth'] = oneClaim['truth_rating']
-            tempData['url'] = oneClaim['url']
-            print(tempData)
-            if(float(tempData['comparison']) > simVal):
-                data = tempData
-                simVal = float(tempData['comparison'])
-        finally:
+        print(oneClaim)
+        if 'says' in oneClaim['claim']:
             continue
+        tempData = {}
+        tempData['claim'] = oneClaim['claim']
+        tempData['comparison'] = str(sm.compareStr(oneClaim['claim'],claim1, 0))
+        print(tempData['comparison'])
+        tempData['truth'] = oneClaim['truth_rating']
+        tempData['url'] = oneClaim['url']
+        print(tempData)
+        if(float(tempData['comparison']) > simVal):
+            data = tempData
+            simVal = float(tempData['comparison'])
+
 
     print('Data in factScrape Thread: ')
     print(data)
 
+    if not data:
+        data['truth'] = rt.procure(simVal)
+
     data['type'] = 'factScrape'
 
     dataArr.append(data)
+
+
 
 def connect_to_db():
     conn = sqlite3.connect('database.db')
@@ -425,10 +437,6 @@ def prepareJson(dict):
 
 if __name__ == '__main__':
     cm = check_mate()
-    sm = sentence_mech()
-    ke = keyword_extractor()
-
-    app.run(port=5001, debug=True)
-
-
-
+    sm = sentence_mech('/Users/nitinrajesh/Code/FantomCode/FC11-404/flask_app/bert_model/custom-bert')
+    rt = rating()
+    app.run(port=5001, debug=False)
