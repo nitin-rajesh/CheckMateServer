@@ -1,4 +1,4 @@
-# FC11-!404
+CheckMate
 
 This system intends to automate and simplify the fact checking process
 
